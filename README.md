@@ -7,9 +7,17 @@ Bonus Points: Focus on plant care, plant type recognition, or plant health class
 
 ## 🎨 Frontend
 
+Language: TypeScript
+Framework: Nuxt
+Authenthication: JWT tokens
 
 ## 💻 Backend
 
+Language: Python
+Framework: Azure Functions
+Authenthication: JWT tokens
 
 ## 🏫 Models - EDA & Training
 
+Language: Python
+Libraries: Scikit-learn, PyTorch
