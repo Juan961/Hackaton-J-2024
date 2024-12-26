@@ -4,21 +4,21 @@ interface IDataClassificationImage {
   sunlightHours: number
   temperature: number
   humidity: number
-  soilType: "sandy" | "loam" | "clay"
-  waterFrequency: "daily" | "weekly" | "monthly"
-  fertilizerType: number
+  soilType: string // "sandy" | "loam" | "clay"
+  waterFrequency: string // "daily" | "weekly" | "monthly"
+  fertilizerType: string // "organic" | "chemical" | "none"
 }
 
 interface IDataImage {
   base64: string;
 }
 
-interface IResponseClassification {
+export interface IResponseClassification {
   growing: boolean
   response: string
 }
 
-interface IResponseImage {
+export interface IResponseImage {
   response: string
   plant: string
 }

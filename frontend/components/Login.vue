@@ -1,11 +1,11 @@
 <template>
-  <main>
-    <div class="login">
-      <h1>Login</h1>
-      <form @submit.prevent="loginLogic">
-        <input type="text" placeholder="Username" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Login</button>
+  <main class="main flex items-center justify-center min-h-screen">
+    <div class="flex flex-col items-center">
+      <h1 class="text-2xl font-medium mb-10">Login</h1>
+      <form @submit.prevent="loginLogic" class="flex flex-col items-center gap-4">
+        <input type="text" placeholder="Username" v-model="loginData.username" />
+        <input type="password" placeholder="Password" v-model="loginData.password" />
+        <button type="submit">{{ loginLoading ? 'Loading' : 'Login' }}</button>
       </form>
     </div>
   </main>
@@ -35,6 +35,8 @@ const loginLogic = async () => {
   loginError.value = null
 
   const response = await login(loginData)
+
+  loginLoading.value = false
 
   if (response === null) {
     loginError.value = 'Invalid credentials'
