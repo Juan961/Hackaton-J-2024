@@ -10,6 +10,7 @@ Bonus Points: Focus on plant care, plant type recognition, or plant health class
 Language: TypeScript
 Framework: Nuxt
 Authenthication: JWT tokens
+Live demo: [https://deluxe-swan-1a370f.netlify.app/](https://deluxe-swan-1a370f.netlify.app/)
 
 ## 💻 Backend
 
