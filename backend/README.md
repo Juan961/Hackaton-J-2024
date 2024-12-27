@@ -1,5 +1,7 @@
 # Hackaton - Backend
 
+The backend manages login requests using JWT tokens. The tokens are used and validated in the endpoint of prediction, that has the job of processing the data using the ML model and returning the predictions as a JSON response.
+
 ## 🐍 Suggested Pyhton version
 ```
 3.11.*
@@ -20,8 +22,6 @@ $ source venv/scripts/activate
 ```
 
 ## 🚀 Dev
-
-Before run the development server make sure to be running Azurite Blob Service on 127.0.0.1:10000
 
 ``` bash
 $ func start
