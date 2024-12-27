@@ -92,62 +92,50 @@ class Network(nn.Module):
         super(Network, self).__init__()
         
         # First block
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(32)
         self.pool1 = nn.MaxPool2d(2, 2)
 
         # Second block
-        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.bn3 = nn.BatchNorm2d(64)
-        self.conv4 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.bn4 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.pool2 = nn.MaxPool2d(2, 2)
 
-        # Third block
-        self.conv5 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
-        self.bn5 = nn.BatchNorm2d(128)
-        self.conv6 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1)
-        self.bn6 = nn.BatchNorm2d(128)
+        # Third block (final convolution layer)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
         self.pool3 = nn.MaxPool2d(2, 2)
 
         # Fully connected layers
         self._initialize_weights()
-        self.fc1 = nn.Linear(self.fc_input_size, 256)
+        self.fc1 = nn.Linear(self.fc_input_size, 256)  # Reduced size
         self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(256, 30)  # 30 output classes
+        self.fc2 = nn.Linear(256, 30)  # Output classes
 
     def _initialize_weights(self):
         with torch.no_grad():
             dummy_input = torch.zeros(1, 3, 224, 224)
             output = F.relu(self.bn1(self.conv1(dummy_input)))
-            output = F.relu(self.bn2(self.conv2(output)))
             output = self.pool1(output)
-            output = F.relu(self.bn3(self.conv3(output)))
-            output = F.relu(self.bn4(self.conv4(output)))
+            output = F.relu(self.bn2(self.conv2(output)))
             output = self.pool2(output)
-            output = F.relu(self.bn5(self.conv5(output)))
-            output = F.relu(self.bn6(self.conv6(output)))
+            output = F.relu(self.bn3(self.conv3(output)))
             output = self.pool3(output)
             self.fc_input_size = output.numel()
 
     def forward(self, input):
         # First block
         output = F.relu(self.bn1(self.conv1(input)))
-        output = F.relu(self.bn2(self.conv2(output)))
         output = self.pool1(output)
-        
+
         # Second block
-        output = F.relu(self.bn3(self.conv3(output)))
-        output = F.relu(self.bn4(self.conv4(output)))
+        output = F.relu(self.bn2(self.conv2(output)))
         output = self.pool2(output)
-        
+
         # Third block
-        output = F.relu(self.bn5(self.conv5(output)))
-        output = F.relu(self.bn6(self.conv6(output)))
+        output = F.relu(self.bn3(self.conv3(output)))
         output = self.pool3(output)
-        
+
         # Flatten and fully connected layers
         output = output.view(-1, self.fc_input_size)
         output = F.relu(self.fc1(output))
@@ -159,35 +147,17 @@ class Network(nn.Module):
 # Instantiate a neural network model 
 model = Network()
 
-# Define the loss function with Classification Cross-Entropy loss and an optimizer with Adam optimizer
+# Define the loss function with Classification Cross-Entropy loss and an optimizer with SGD optimizer
 loss_fn = nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters(), lr=1e-5, weight_decay=0.0001)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.0001)
+
+# Learning rate scheduler
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Function to save the model
 def saveModel():
     path = "../backend/machine/models/cnn.pth"
     torch.save(model.state_dict(), path)
-
-# Function to test the model with the test dataset and print the accuracy for the test images
-def testAccuracy():
-    model.eval()
-    accuracy = 0.0
-    total = 0.0
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
-    with torch.no_grad():
-        for data in test_loader:
-            images, labels = data
-            # run the model on the test set to predict labels
-            outputs = model(images.to(device))
-            # the label with the highest energy will be our prediction
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            accuracy += (predicted == labels.to(device)).sum().item()
-    
-    # compute the accuracy over all test images
-    accuracy = (100 * accuracy / total)
-    return(accuracy)
 
 # Training function. We simply have to loop over our data iterator and feed the inputs to the network and optimize.
 def train(num_epochs):
@@ -200,56 +170,79 @@ def train(num_epochs):
     model.to(device)
 
     for epoch in range(num_epochs):  # loop over the dataset multiple times
-        print('Starting epoch', epoch+1)
+        print(f"Starting epoch {epoch + 1}")
+        model.train()  # Ensure the model is in training mode
         running_loss = 0.0
-        running_acc = 0.0
 
         for i, (images, labels) in enumerate(train_loader, 0):
-            
-            # get the inputs
-            images = Variable(images.to(device))
-            labels = Variable(labels.to(device))
+            # Move data to the execution device
+            images, labels = images.to(device), labels.to(device)
 
-            # zero the parameter gradients
+            # Zero the parameter gradients
             optimizer.zero_grad()
-            # predict classes using images from the training set
+
+            # Forward pass
             outputs = model(images)
-            # compute the loss based on model output and real labels
             loss = loss_fn(outputs, labels)
-            # backpropagate the loss
+
+            # Backward pass and optimization
             loss.backward()
-            # adjust parameters based on the calculated gradients
             optimizer.step()
 
-            # Let's print statistics for every 1,000 images
-            running_loss += loss.item()     # extract the loss value
-            if i % 1000 == 999:
-                # print every 1000 (twice per epoch) 
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 1000))
-                # zero the loss
+            # Accumulate loss
+            running_loss += loss.item()
+
+            # Print statistics every 100 mini-batches
+            if (i + 1) % 100 == 0:
+                print(f"[Epoch {epoch + 1}, Batch {i + 1}] Loss: {running_loss / 100:.3f}")
                 running_loss = 0.0
 
-        # Compute and print the average accuracy fo this epoch when tested over all 10000 test images
-        accuracy = testAccuracy()
-        print('For epoch', epoch+1,'the test accuracy over the whole test set is %d %%' % (accuracy), 'Loss: %.3f' % (running_loss / 1000))
+        # Step the scheduler
+        scheduler.step()
 
-        # we want to save the model if the accuracy is the best
+        # Compute and print the accuracy for this epoch
+        accuracy = testAccuracy()
+        print(f"Epoch {epoch + 1}: Test Accuracy = {accuracy:.2f}%")
+
+        # Save the model if this is the best accuracy so far
         if accuracy > best_accuracy:
             saveModel()
             best_accuracy = accuracy
+            print(f"Model saved with accuracy: {best_accuracy:.2f}%")
 
+def testAccuracy():
+    model.eval()  # Set model to evaluation mode
+    accuracy = 0.0
+    total = 0.0
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
-# Function to show the images
-def imageshow(img):
-    img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
+    with torch.no_grad():
+        for images, labels in test_loader:
+            # Move data to the execution device
+            images, labels = images.to(device), labels.to(device)
+
+            # Predict
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+
+            # Update accuracy
+            total += labels.size(0)
+            accuracy += (predicted == labels).sum().item()
+
+    # Compute overall accuracy
+    accuracy = 100 * accuracy / total
+    return accuracy
 
 
 # Function to test the model with a batch of images and show the labels predictions
 def testBatch():
+    def imageshow(img):
+        img = img / 2 + 0.5     # unnormalize
+        npimg = img.numpy()
+        plt.imshow(np.transpose(npimg, (1, 2, 0)))
+        plt.show()
+
     # get batch of images from the test DataLoader  
     images, labels = next(iter(test_loader))
 
@@ -290,7 +283,6 @@ def testClassess():
 
 if __name__ == "__main__":
     start = time.time()
-    # Let's build our model
     print('======================= Starting Training =======================')
     train(20)
     print('======================= Finished Training =======================')
@@ -304,16 +296,12 @@ if __name__ == "__main__":
     print('======================= Finished Accuracy =======================')
 
     print('======================= Starting Test Batch =======================')
-    # Let's load the model we just created and test the accuracy per label
     model = Network()
     path = "../backend/machine/models/cnn.pth"
     model.load_state_dict(torch.load(path, weights_only=True))
-
-    # Test with batch of images
-    testBatch()
+    testBatch() # Test with batch of images
     print('======================= Finished Test Batch =======================')
 
     print('======================= Starting Test Classes =======================')
-    # Test with classes
-    testClassess()
+    testClassess() # Test the accuracy per label
     print('======================= Finished Test Classes =======================')

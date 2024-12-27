@@ -8,3 +8,5 @@ python-jose[cryptography]
 pytest
 joblib
 scikit-learn
+torch
+torchvision
