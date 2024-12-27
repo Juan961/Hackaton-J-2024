@@ -3,9 +3,9 @@
     <div class="flex flex-col items-center">
       <h1 class="text-2xl font-medium mb-10">Login</h1>
       <form @submit.prevent="loginLogic" class="flex flex-col items-center gap-4">
-        <input type="text" placeholder="Username" v-model="loginData.username" />
-        <input type="password" placeholder="Password" v-model="loginData.password" />
-        <button type="submit">{{ loginLoading ? 'Loading' : 'Login' }}</button>
+        <input type="text" placeholder="Username" v-model="loginData.username" class="w-full border px-4 py-2 rounded" />
+        <input type="password" placeholder="Password" v-model="loginData.password" class="w-full border px-4 py-2 rounded" />
+        <button class="w-full bg-green-500 rounded text-white py-2 text-lg" type="submit">{{ loginLoading ? 'Loading' : 'Login' }}</button>
       </form>
     </div>
   </main>
