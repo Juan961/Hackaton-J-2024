@@ -1,8 +1,10 @@
 # Hackaton - Frontend
 
+The frontend project presents an interface to login and validate user, if the user is authenticated, the user can access the prediction page, where the user can upload an image and get the prediction of the plant type.
+
 ## 📐 Setup
 
-Make sure to install dependencies:
+Make sure to install dependencies and configure the environment variables as showed in .env.example file:
 
 ```bash
 # npm
