@@ -1,16 +1,16 @@
 import axios from 'axios';
 
 interface IDataClassificationImage {
-  sunlightHours: number
-  temperature: number
-  humidity: number
-  soilType: string // "sandy" | "loam" | "clay"
-  waterFrequency: string // "daily" | "weekly" | "monthly"
-  fertilizerType: string // "organic" | "chemical" | "none"
+  Sunlight_Hours: number
+  Temperature: number
+  Humidity: number
+  Soil_Type: string // "sandy" | "loam" | "clay"
+  Water_Frequency: string // "daily" | "weekly" | "monthly"
+  Fertilizer_Type: string // "organic" | "chemical" | "none"
 }
 
 interface IDataImage {
-  base64: string;
+  image: string;
 }
 
 export interface IResponseClassification {
