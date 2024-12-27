@@ -17,7 +17,7 @@ The features that were used in the analysis are:
 - Fertilizer Type: {fertilizer_type}
 - Temperature: {temperature}
 - Humidity: {humidity}
-Generate a response based on the result of my analisys.
+Generate a short response [70 - 100 words] based on the result of my analisys.
 """
 
 

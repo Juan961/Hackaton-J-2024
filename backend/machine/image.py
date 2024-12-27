@@ -116,7 +116,7 @@ transform = transforms.Compose([
 
 PROMPT = """
 I have done an analysis of an image and found that it is a plant: {plant}
-The plants that I have checked are: {classes} Generate a response based on the result of my analisys.
+The plants that I have checked are: {classes} Generate a short response [70 - 100 words] based on the result of my analisys.
 """.replace("{classes}", str(classes))
 
 
